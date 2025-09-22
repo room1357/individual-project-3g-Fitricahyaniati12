@@ -3,8 +3,12 @@ import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/advanced_expense_list_screen.dart';
+import 'models/looping_examples.dart';
 
 void main() {
+  double total = LoopingExamples.calculateTotalFold(LoopingExamples.expenses);
+  debugPrint('Total pengeluaran: Rp ${total.toStringAsFixed(0)}');
+
   runApp(const MyApp());
 }
 
