@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
-import 'expense_list_screen.dart';
+import 'advanced_expense_list_screen.dart'; // ganti ke advanced
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -9,28 +9,28 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Beranda'),
+        title: const Text('Beranda'),
         backgroundColor: Colors.blue,
         actions: [
           IconButton(
             onPressed: () {
               // Logout dengan pushAndRemoveUntil
               Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const LoginScreen()),
-              (route) => false,
-                );
+                context,
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                (route) => false,
+              );
             },
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout),
           ),
         ],
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Dashboard',
               style: TextStyle(
                 fontSize: 24,
@@ -38,7 +38,7 @@ class HomeScreen extends StatelessWidget {
                 color: Colors.blue,
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Expanded(
               child: GridView.count(
                 crossAxisCount: 2,
@@ -46,10 +46,10 @@ class HomeScreen extends StatelessWidget {
                 mainAxisSpacing: 16,
                 children: [
                   _buildDashboardCard('Pengeluaran', Icons.attach_money, Colors.green, () {
-                    // Navigasi ke ExpenseListScreen
+                    // Navigasi ke AdvancedExpenseListScreen
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const ExpenseListScreen()),
+                      MaterialPageRoute(builder: (context) => const AdvancedExpenseListScreen()),
                     );
                   }),
                   _buildDashboardCard('Profil', Icons.person, Colors.blue, null),
@@ -69,21 +69,22 @@ class HomeScreen extends StatelessWidget {
       elevation: 4,
       child: Builder(
         builder: (context) => InkWell(
-          onTap: onTap ?? () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Fitur $title segera hadir!')),
-            );
-          },
+          onTap: onTap ??
+              () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Fitur $title segera hadir!')),
+                );
+              },
           child: Container(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(icon, size: 48, color: color),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Text(
                   title,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
