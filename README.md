@@ -2,6 +2,14 @@
 
 A new Flutter project.
 
+Biodata :
+
+name : Fitri Cahyaniati
+
+Class : SIB2G
+
+NIM : 2341760198
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
