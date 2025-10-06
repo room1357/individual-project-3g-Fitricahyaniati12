@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
 import 'advanced_expense_list_screen.dart'; // ganti ke advanced
+import 'profile_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -45,16 +46,55 @@ class HomeScreen extends StatelessWidget {
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
                 children: [
-                  _buildDashboardCard('Pengeluaran', Icons.attach_money, Colors.green, () {
-                    // Navigasi ke AdvancedExpenseListScreen
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const AdvancedExpenseListScreen()),
-                    );
-                  }),
-                  _buildDashboardCard('Profil', Icons.person, Colors.blue, null),
-                  _buildDashboardCard('Pesan', Icons.message, Colors.orange, null),
-                  _buildDashboardCard('Pengaturan', Icons.settings, Colors.purple, null),
+                  // Card Pengeluaran
+                  _buildDashboardCard(
+                    context,
+                    'Pengeluaran',
+                    Icons.attach_money,
+                    Colors.green,
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AdvancedExpenseListScreen(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  // Card Profil
+                  _buildDashboardCard(
+                    context,
+                    'Profil',
+                    Icons.person,
+                    Colors.blue,
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ProfileScreen(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  // Card Pesan
+                  _buildDashboardCard(
+                    context,
+                    'Pesan',
+                    Icons.message,
+                    Colors.orange,
+                    null,
+                  ),
+
+                  // Card Pengaturan
+                  _buildDashboardCard(
+                    context,
+                    'Pengaturan',
+                    Icons.settings,
+                    Colors.purple,
+                    null,
+                  ),
                 ],
               ),
             ),
@@ -64,33 +104,37 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDashboardCard(String title, IconData icon, Color color, VoidCallback? onTap) {
+  Widget _buildDashboardCard(
+    BuildContext context,
+    String title,
+    IconData icon,
+    Color color,
+    VoidCallback? onTap,
+  ) {
     return Card(
       elevation: 4,
-      child: Builder(
-        builder: (context) => InkWell(
-          onTap: onTap ??
-              () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Fitur $title segera hadir!')),
-                );
-              },
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, size: 48, color: color),
-                const SizedBox(height: 12),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+      child: InkWell(
+        onTap: onTap ??
+            () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Fitur $title segera hadir!')),
+              );
+            },
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 48, color: color),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
