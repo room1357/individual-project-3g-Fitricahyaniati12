@@ -22,4 +22,6 @@ class Expense {
   String get formattedDate {
     return '${date.day}/${date.month}/${date.year}';
   }
+
+  
 }
