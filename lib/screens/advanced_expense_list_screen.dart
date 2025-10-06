@@ -1,6 +1,13 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:share_plus/share_plus.dart';
+
 import '../models/expense.dart';
-import '../managers/expense_manager.dart';
+import '../services/expense_manager.dart';
+import 'add_expense_screen.dart';
+import 'edit_expense_screen.dart';
 
 class AdvancedExpenseListScreen extends StatefulWidget {
   const AdvancedExpenseListScreen({super.key});
@@ -23,12 +30,119 @@ class _AdvancedExpenseListScreenState
     filteredExpenses = expenses;
   }
 
+  // ➕ fungsi untuk menambah expense baru
+  void _addExpense(Expense expense) {
+    setState(() {
+      expenses.add(expense);
+      _filterExpenses();
+    });
+  }
+
+  // ✏️ fungsi untuk update expense
+  void _updateExpense(Expense updatedExpense) {
+    setState(() {
+      final index = expenses.indexWhere((e) => e.id == updatedExpense.id);
+      if (index != -1) {
+        expenses[index] = updatedExpense;
+      }
+      _filterExpenses();
+    });
+  }
+
+  // ❌ fungsi untuk hapus expense
+  void _deleteExpense(Expense expense) {
+    setState(() {
+      expenses.removeWhere((e) => e.id == expense.id);
+      _filterExpenses();
+    });
+  }
+
+  /// 📊 Export ke CSV
+  Future<void> _exportToCSV() async {
+    final StringBuffer csv = StringBuffer();
+    csv.writeln("Judul,Kategori,Tanggal,Jumlah,Deskripsi");
+
+    for (var e in filteredExpenses) {
+      csv.writeln(
+          "${e.title},${e.category},${e.formattedDate},${e.amount},${e.description}");
+    }
+
+    final directory = await getTemporaryDirectory();
+    final path = "${directory.path}/pengeluaran.csv";
+    final file = File(path);
+    await file.writeAsString(csv.toString());
+
+    await Share.shareXFiles([XFile(file.path)], text: "Laporan Pengeluaran (CSV)");
+  }
+
+  /// 📄 Export ke PDF
+  Future<void> _exportToPDF() async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text("Laporan Pengeluaran",
+                  style: pw.TextStyle(
+                      fontSize: 18, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 20),
+              ...filteredExpenses.map((e) => pw.Text(
+                  "${e.title} - Rp ${e.amount} (${e.category}, ${e.formattedDate})")),
+            ],
+          );
+        },
+      ),
+    );
+
+    final dir = await getTemporaryDirectory();
+    final file = File("${dir.path}/pengeluaran.pdf");
+    await file.writeAsBytes(await pdf.save());
+
+    await Share.shareXFiles([XFile(file.path)], text: "Laporan Pengeluaran (PDF)");
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pengeluaran Advanced'),
         backgroundColor: Colors.blue,
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'pdf') {
+                _exportToPDF();
+              } else if (value == 'csv') {
+                _exportToCSV();
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'pdf',
+                child: Row(
+                  children: [
+                    Icon(Icons.picture_as_pdf, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('Export PDF'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'csv',
+                child: Row(
+                  children: [
+                    Icon(Icons.table_chart, color: Colors.green),
+                    SizedBox(width: 8),
+                    Text('Export CSV'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -101,8 +215,8 @@ class _AdvancedExpenseListScreenState
                     itemBuilder: (context, index) {
                       final expense = filteredExpenses[index];
                       return Card(
-                        margin:
-                            const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 4),
                         child: ListTile(
                           leading: CircleAvatar(
                             backgroundColor: _getCategoryColor(expense.category),
@@ -115,12 +229,32 @@ class _AdvancedExpenseListScreenState
                           subtitle: Text(
                             '${expense.category} • ${expense.formattedDate}\n${expense.description}',
                           ),
-                          trailing: Text(
-                            expense.formattedAmount,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.red[600],
-                            ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Tombol edit
+                              IconButton(
+                                icon: const Icon(Icons.edit,
+                                    color: Colors.orange),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => EditExpenseScreen(
+                                        expense: expense,
+                                        onUpdateExpense: _updateExpense,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              // Tombol hapus
+                              IconButton(
+                                icon:
+                                    const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () => _deleteExpense(expense),
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -128,6 +262,19 @@ class _AdvancedExpenseListScreenState
                   ),
           ),
         ],
+      ),
+
+      // ➕ tombol tambah pengeluaran
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => AddExpenseScreen(onAddExpense: _addExpense),
+            ),
+          );
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
