@@ -54,6 +54,49 @@ class _CategoryScreenState extends State<CategoryScreen> {
   Color _hexToColor(String hex) {
     return Color(int.parse(hex.substring(1, 7), radix: 16) + 0xFF000000);
   }
+  // ✅ Fungsi untuk edit kategori
+  Future<void> _editCategory(int index) async {
+    final TextEditingController editController =
+        TextEditingController(text: categories[index].name);
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Edit Kategori"),
+          content: TextField(
+            controller: editController,
+            decoration: const InputDecoration(
+              labelText: "Nama kategori baru",
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Batal"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (editController.text.isNotEmpty) {
+                  setState(() {
+                    categories[index] =
+                        Category(
+                          name: editController.text,
+                          icon: categories[index].icon,
+                          color: categories[index].color,
+                        );
+                  });
+                  await _storage.saveCategories(categories);
+                }
+                Navigator.pop(context);
+              },
+              child: const Text("Simpan"),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   IconData _stringToIcon(String iconName) {
     switch (iconName) {
@@ -104,14 +147,15 @@ class _CategoryScreenState extends State<CategoryScreen> {
             ),
           ),
 
-          // Daftar kategori
+// Daftar kategori
           Expanded(
             child: ListView.builder(
               itemCount: categories.length,
               itemBuilder: (context, index) {
                 final category = categories[index];
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundColor: _hexToColor(category.color),
@@ -121,9 +165,20 @@ class _CategoryScreenState extends State<CategoryScreen> {
                       ),
                     ),
                     title: Text(category.name),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _deleteCategory(index),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Tombol Edit
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () => _editCategory(index),
+                        ),
+                        // Tombol Hapus
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _deleteCategory(index),
+                        ),
+                      ],
                     ),
                   ),
                 );
