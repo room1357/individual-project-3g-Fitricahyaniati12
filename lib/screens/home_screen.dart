@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'login_screen.dart';
 import 'advanced_expense_list_screen.dart'; // ganti ke advanced
 import 'profile_screen.dart';
+import 'statistics_screen.dart'; // ✅ tambahkan import ini
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -56,7 +57,8 @@ class HomeScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const AdvancedExpenseListScreen(),
+                          builder: (context) =>
+                              const AdvancedExpenseListScreen(),
                         ),
                       );
                     },
@@ -73,6 +75,22 @@ class HomeScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => const ProfileScreen(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  // ✅ Card Statistik
+                  _buildDashboardCard(
+                    context,
+                    'Statistik',
+                    Icons.pie_chart,
+                    Colors.red,
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const StatisticsScreen(),
                         ),
                       );
                     },
