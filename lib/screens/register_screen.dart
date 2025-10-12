@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pemrograman_mobile/screens/login_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -28,7 +30,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _handleRegister() {
+  void _handleRegister() async {
     String fullName = fullNameController.text.trim();
     String email = emailController.text.trim();
     String username = usernameController.text.trim();
@@ -54,16 +56,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    // Kalau valid, tampilkan datanya (sementara print/log aja)
-    print("Full Name: $fullName");
-    print("Email: $email");
-    print("Username: $username");
-    print("Password: $password");
+    // Simpan data ke SharedPreferences
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('username', username);
+  await prefs.setString('password', password);
+  await prefs.setString('fullname', fullName);
+  await prefs.setString('email', email);
 
-    // Nanti di sini bisa simpan ke database / API
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text("Registrasi berhasil! Silakan login.")),
+  );
 
     // Pindah ke halaman home
-    Navigator.pushReplacementNamed(context, '/home');
+    Navigator.pushReplacementNamed(context, '/login');
   }
 
   @override
