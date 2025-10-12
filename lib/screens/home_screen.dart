@@ -4,6 +4,7 @@ import 'advanced_expense_list_screen.dart';
 import 'profile_screen.dart';
 import 'statistics_screen.dart'; 
 import 'category_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -123,13 +124,18 @@ class HomeScreen extends StatelessWidget {
                   ),
 
                   // Card Pengaturan
-                  _buildDashboardCard(
-                    context,
-                    'Pengaturan',
-                    Icons.settings,
-                    Colors.purple,
-                    null,
-                  ),
+                 _buildDashboardCard(
+                  context,
+                  'Pengaturan',
+                  Icons.settings,
+                  Colors.purple,
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                    );
+                  },
+                ),
                 ],
               ),
             ),
