@@ -5,6 +5,8 @@ import 'profile_screen.dart';
 import 'statistics_screen.dart'; 
 import 'category_screen.dart';
 import 'settings_screen.dart';
+import 'shared_expenses_screen.dart';
+
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -122,6 +124,23 @@ class HomeScreen extends StatelessWidget {
                     Colors.orange,
                     null,
                   ),
+
+                  // Card Pengeluaran Bersama
+                  _buildDashboardCard(
+                    context,
+                    'Pengeluaran Bersama',
+                    Icons.group,
+                    Colors.indigo,
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SharedExpensesScreen(),
+                        ),
+                      );
+                    },
+                  ),
+
 
                   // Card Pengaturan
                  _buildDashboardCard(
