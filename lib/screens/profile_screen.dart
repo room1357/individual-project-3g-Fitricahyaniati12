@@ -1,20 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+@override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  String? fullName;
+  String? email;
+  String? username;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      fullName = prefs.getString('fullname') ?? 'Nama tidak tersedia';
+      email = prefs.getString('email') ?? 'Email tidak tersedia';
+      username = prefs.getString('username') ?? 'Username tidak tersedia';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profil'),
+        title: const Text('Profil Saya'),
         backgroundColor: Colors.blue,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Center(
-          child: Column(
-            children: [
+      body: fullName == null
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Center(
+                child: Column(
+                  children: [
               // Foto profil
               const CircleAvatar(
                 radius: 60,
@@ -22,27 +49,22 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // Nama Lengkap
-              const Text(
-                'Fitri Cahyaniati',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
+              // Nama lengkap
+                    Text(
+                      fullName!,
+                      style: const TextStyle(
+                          fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    const Divider(thickness: 1),
 
-              const Divider(thickness: 1),
+                    _buildInfoRow("Username", username!),
+                    _buildInfoRow("Email", email!),
+                    const SizedBox(height: 20),
 
-              _buildInfoRow("Tempat, Tanggal Lahir", "Blitar, 01 April 2005"),
-              _buildInfoRow("Alamat",
-                  "Malang"),
-              _buildInfoRow("Jenis Kelamin", "Perempuan"),
-              _buildInfoRow("Agama", "Islam"),
-              _buildInfoRow("Nomor Telepon", "+62 812-3456-7890"),
-         
-
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Kembali'),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Kembali'),
               ),
             ],
           ),
