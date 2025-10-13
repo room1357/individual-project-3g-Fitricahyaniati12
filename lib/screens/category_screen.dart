@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/category.dart';
 import '../services/storage_service.dart';
 
@@ -13,22 +14,28 @@ class _CategoryScreenState extends State<CategoryScreen> {
   final StorageService _storage = StorageService();
   List<Category> categories = [];
   final TextEditingController nameController = TextEditingController();
+  String? _currentUser;
 
   @override
   void initState() {
     super.initState();
-    _loadCategories();
+    _loadUserAndCategories();
   }
 
-  Future<void> _loadCategories() async {
-    final loaded = await _storage.getCategories();
+ Future<void> _loadUserAndCategories() async {
+    final prefs = await SharedPreferences.getInstance();
+    _currentUser = prefs.getString('username'); // ambil username login
+    if (_currentUser == null) return;
+
+    final loaded = await _storage.getCategories(username: _currentUser!);
+
     setState(() {
       categories = loaded;
     });
   }
 
   Future<void> _addCategory() async {
-    if (nameController.text.isEmpty) return;
+    if (nameController.text.isEmpty || _currentUser == null) return;
 
     setState(() {
       categories.add(
@@ -41,14 +48,17 @@ class _CategoryScreenState extends State<CategoryScreen> {
       nameController.clear();
     });
 
-    await _storage.saveCategories(categories);
+    await _storage.saveCategories(_currentUser!, categories);
+
   }
 
   Future<void> _deleteCategory(int index) async {
+    if (_currentUser == null) return;
+
     setState(() {
       categories.removeAt(index);
     });
-    await _storage.saveCategories(categories);
+    await _storage.saveCategories(_currentUser!, categories);
   }
 
   Color _hexToColor(String hex) {
@@ -79,14 +89,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
               onPressed: () async {
                 if (editController.text.isNotEmpty) {
                   setState(() {
-                    categories[index] =
-                        Category(
-                          name: editController.text,
-                          icon: categories[index].icon,
-                          color: categories[index].color,
-                        );
+                   categories[index] = Category(
+                      name: editController.text,
+                      icon: categories[index].icon,
+                      color: categories[index].color,
+                    );
                   });
-                  await _storage.saveCategories(categories);
+                  await _storage.saveCategories(_currentUser!, categories);
+
                 }
                 Navigator.pop(context);
               },
