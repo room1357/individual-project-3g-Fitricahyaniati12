@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
-@override
+  @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
@@ -35,41 +35,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('Profil Saya'),
         backgroundColor: Colors.blue,
       ),
-      body: fullName == null
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Center(
-                child: Column(
-                  children: [
-              // Foto profil
-              const CircleAvatar(
-                radius: 60,
-                backgroundImage: AssetImage('assets/images/profile.jpg'),
+      body:
+          fullName == null
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Center(
+                  child: Column(
+                    children: [
+                      // Foto profil
+                      const CircleAvatar(
+                        radius: 60,
+                        backgroundImage: AssetImage(
+                          'assets/images/Profil.webp',
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Nama lengkap
+                      Text(
+                        fullName!,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      const Divider(thickness: 1),
+
+                      _buildInfoRow("Username", username!),
+                      _buildInfoRow("Email", email!),
+                      const SizedBox(height: 20),
+
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Kembali'),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 20),
-
-              // Nama lengkap
-                    Text(
-                      fullName!,
-                      style: const TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    const Divider(thickness: 1),
-
-                    _buildInfoRow("Username", username!),
-                    _buildInfoRow("Email", email!),
-                    const SizedBox(height: 20),
-
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Kembali'),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
@@ -86,10 +92,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
-          Expanded(
-            flex: 5,
-            child: Text(value),
-          ),
+          Expanded(flex: 5, child: Text(value)),
         ],
       ),
     );
