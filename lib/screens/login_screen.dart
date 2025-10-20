@@ -12,7 +12,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController usernameController = TextEditingController();
-final TextEditingController passwordController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   void _handleLogin() async {
     final prefs = await SharedPreferences.getInstance();
@@ -38,92 +38,153 @@ final TextEditingController passwordController = TextEditingController();
     }
   }
 
-
- @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Masuk'),
-        backgroundColor: Colors.blue,
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Logo aplikasi
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: Colors.blue,
+      backgroundColor: const Color.fromARGB(
+        255,
+        255,
+        212,
+        227,
+      ), //  pink lembut
+      body: Stack(
+        children: [
+          //  Lingkaran besar di atas
+          Positioned(
+            top: -100,
+            right: -100,
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: const BoxDecoration(
+                color: Color(0xFF7EC8E3), // 💙 biru muda
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.person, size: 50, color: Colors.white),
             ),
-            SizedBox(height: 32),
-
-            // Username
-            TextField(
-              controller: usernameController,
-              decoration: const InputDecoration(
-                labelText: 'Username',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.person),
+          ),
+          //  Lingkaran kecil di bawah
+          Positioned(
+            bottom: -50,
+            left: -50,
+            child: Container(
+              width: 150,
+              height: 150,
+              decoration: const BoxDecoration(
+                color: Color(0xFF9ED8EB),
+                shape: BoxShape.circle,
               ),
             ),
-            const SizedBox(height: 16),
-
-             // Password
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.lock),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-
-            // Tombol login
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _handleLogin, // fungsi validasi
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: Text(
-                      'MASUK',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          // 🧩 Konten utama
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.person,
+                    size: 100,
+                    color: Color(0xFF24527A), // biru tua lembut
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Masuk",
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF24527A),
                     ),
                   ),
-                ),
-           
+                  const SizedBox(height: 40),
 
-            // Link ke halaman register
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text("Belum punya akun? "),
-                TextButton(
-                  onPressed: () {
-                    // Navigasi ke RegisterScreen dengan push
-                    Navigator.push(
-                    context,
-                        MaterialPageRoute(builder: 
-                        (context) => const RegisterScreen()),
-                    );
-                  },
-                  child: Text('Daftar'),
-                ),
-              ],
+                  // Username Field
+                  TextField(
+                    controller: usernameController,
+                    decoration: InputDecoration(
+                      labelText: 'Username',
+                      prefixIcon: const Icon(Icons.person_outline),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Password Field
+                  TextField(
+                    controller: passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+
+                  // Tombol Login
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _handleLogin,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF7EC8E3),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        elevation: 4,
+                      ),
+                      child: const Text(
+                        'MASUK',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Link ke Register
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text("Belum punya akun? "),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const RegisterScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'Daftar',
+                          style: TextStyle(
+                            color: Color(0xFF24527A),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
