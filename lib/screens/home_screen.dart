@@ -1,15 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
-import 'advanced_expense_list_screen.dart'; 
+import 'advanced_expense_list_screen.dart';
 import 'profile_screen.dart';
-import 'statistics_screen.dart'; 
+import 'statistics_screen.dart';
 import 'category_screen.dart';
 import 'settings_screen.dart';
 import 'shared_expenses_screen.dart';
 
-
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String? username = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUsername();
+  }
+
+  Future<void> _loadUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      username = prefs.getString('username') ?? 'User';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,25 +37,95 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Beranda'),
         backgroundColor: Colors.blue,
-        actions: [
-          IconButton(
-            onPressed: () {
-              // Logout dengan pushAndRemoveUntil
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-                (route) => false,
-              );
-            },
-            icon: const Icon(Icons.logout),
-          ),
-        ],
       ),
+
+      // 🍔 Drawer (menu samping)
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            // Header drawer
+            UserAccountsDrawerHeader(
+              decoration: const BoxDecoration(color: Colors.blue),
+              accountName: Text(username ?? 'User'),
+              accountEmail: const Text('fitri@example.com'),
+              currentAccountPicture: const CircleAvatar(
+                backgroundColor: Colors.white,
+                child: Icon(Icons.person, size: 40, color: Colors.blue),
+              ),
+            ),
+
+            // Menu navigasi drawer
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text('Profil'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ProfileScreen(),
+                  ),
+                );
+              },
+            ),
+
+            /* ListTile(
+              leading: const Icon(Icons.group),
+              title: const Text('Pengeluaran Bersama'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SharedExpensesScreen(),
+                  ),
+                );
+              },
+            ),*/
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Pengaturan'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SettingsScreen(),
+                  ),
+                );
+              },
+            ),
+            const Divider(),
+
+            // Tombol logout
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Keluar'),
+              onTap: () {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  (route) => false,
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+
+      // 🧩 Isi utama (Dashboard grid)
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              'Halo, $username ✨',
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 8),
             const Text(
               'Dashboard',
               style: TextStyle(
@@ -51,7 +141,6 @@ class HomeScreen extends StatelessWidget {
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
                 children: [
-                  // Card Pengeluaran
                   _buildDashboardCard(
                     context,
                     'Pengeluaran',
@@ -61,15 +150,13 @@ class HomeScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              const AdvancedExpenseListScreen(),
+                          builder:
+                              (context) => const AdvancedExpenseListScreen(),
                         ),
                       );
                     },
                   ),
-
-                  // Card Profil
-                  _buildDashboardCard(
+                  /*_buildDashboardCard(
                     context,
                     'Profil',
                     Icons.person,
@@ -82,9 +169,7 @@ class HomeScreen extends StatelessWidget {
                         ),
                       );
                     },
-                  ),
-
-                  // Card Statistik
+                  ),*/
                   _buildDashboardCard(
                     context,
                     'Statistik',
@@ -99,8 +184,6 @@ class HomeScreen extends StatelessWidget {
                       );
                     },
                   ),
-
-                   // Card Kategori 
                   _buildDashboardCard(
                     context,
                     'Kategori',
@@ -115,17 +198,6 @@ class HomeScreen extends StatelessWidget {
                       );
                     },
                   ),
-
-                  // Card Pesan
-                  _buildDashboardCard(
-                    context,
-                    'Pesan',
-                    Icons.message,
-                    Colors.orange,
-                    null,
-                  ),
-
-                  // Card Pengeluaran Bersama
                   _buildDashboardCard(
                     context,
                     'Pengeluaran Bersama',
@@ -140,21 +212,20 @@ class HomeScreen extends StatelessWidget {
                       );
                     },
                   ),
-
-
-                  // Card Pengaturan
-                 _buildDashboardCard(
-                  context,
-                  'Pengaturan',
-                  Icons.settings,
-                  Colors.purple,
-                  () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SettingsScreen()),
-                    );
-                  },
-                ),
+                  /*_buildDashboardCard(
+                    context,
+                    'Pengaturan',
+                    Icons.settings,
+                    Colors.purple,
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SettingsScreen(),
+                        ),
+                      );
+                    },
+                  ),*/
                 ],
               ),
             ),
@@ -174,7 +245,8 @@ class HomeScreen extends StatelessWidget {
     return Card(
       elevation: 4,
       child: InkWell(
-        onTap: onTap ??
+        onTap:
+            onTap ??
             () {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Fitur $title segera hadir!')),

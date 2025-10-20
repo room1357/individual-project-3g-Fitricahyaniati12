@@ -55,7 +55,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 🔤 Multi Bahasa
     final texts = {
       'id': {
         'title': 'Pengaturan',
@@ -73,76 +72,61 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     final t = texts[_language]!;
 
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      darkTheme: ThemeData.dark(),
-      theme: ThemeData(
-        primarySwatch: Colors.purple,
-        appBarTheme: const AppBarTheme(color: Colors.purple),
-      ),
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text(t['title']!),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 🌙 Tema
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(t['theme']!, style: const TextStyle(fontSize: 18)),
-                  Switch(
-                    value: _isDarkMode,
-                    onChanged: _toggleTheme,
-                    activeColor: Colors.purple,
-                  ),
-                ],
-              ),
-              const Divider(height: 30),
-
-              // 🌍 Bahasa
-              Text(t['language']!, style: const TextStyle(fontSize: 18)),
-              DropdownButton<String>(
-                value: _language,
-                items: const [
-                  DropdownMenuItem(
-                    value: 'id',
-                    child: Text('Bahasa Indonesia'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'en',
-                    child: Text('English'),
-                  ),
-                ],
-                onChanged: _changeLanguage,
-              ),
-              const SizedBox(height: 40),
-
-              // 📱 Tentang Aplikasi
-              Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AboutScreen(),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.purple,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  ),
-                  child: Text(t['about']!, style: const TextStyle(fontSize: 16)),
+    return Scaffold(
+      appBar: AppBar(title: Text(t['title']!), backgroundColor: Colors.purple),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 🌙 Tema
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(t['theme']!, style: const TextStyle(fontSize: 18)),
+                Switch(
+                  value: _isDarkMode,
+                  onChanged: _toggleTheme,
+                  activeColor: Colors.purple,
                 ),
+              ],
+            ),
+            const Divider(height: 30),
+
+            // 🌍 Bahasa
+            Text(t['language']!, style: const TextStyle(fontSize: 18)),
+            DropdownButton<String>(
+              value: _language,
+              items: const [
+                DropdownMenuItem(value: 'id', child: Text('Bahasa Indonesia')),
+                DropdownMenuItem(value: 'en', child: Text('English')),
+              ],
+              onChanged: _changeLanguage,
+            ),
+            const SizedBox(height: 40),
+
+            // 📱 Tentang Aplikasi
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AboutScreen(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.purple,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+                child: Text(t['about']!, style: const TextStyle(fontSize: 16)),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
