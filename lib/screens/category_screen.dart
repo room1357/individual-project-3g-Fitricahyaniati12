@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/category.dart';
 import '../services/storage_service.dart';
 
@@ -12,95 +11,82 @@ class CategoryScreen extends StatefulWidget {
 
 class _CategoryScreenState extends State<CategoryScreen> {
   final StorageService _storage = StorageService();
-  List<Category> categories = [];
-  final TextEditingController nameController = TextEditingController();
-  String? _currentUser;
+  List<Category> _categories = [];
+  final String _username = 'default_user'; // Bisa diganti sesuai login user
 
   @override
   void initState() {
     super.initState();
-    _loadUserAndCategories();
+    _loadCategories();
   }
 
- Future<void> _loadUserAndCategories() async {
-    final prefs = await SharedPreferences.getInstance();
-    _currentUser = prefs.getString('username'); // ambil username login
-    if (_currentUser == null) return;
-
-    final loaded = await _storage.getCategories(username: _currentUser!);
-
-    setState(() {
-      categories = loaded;
-    });
+  /// 🔹 Ambil kategori dari penyimpanan lokal
+  Future<void> _loadCategories() async {
+    final saved = await _storage.getCategories(_username);
+    if (saved.isEmpty) {
+      _categories = Category.defaultCategories;
+      await _storage.saveCategories(_username, _categories);
+    } else {
+      _categories = saved;
+    }
+    setState(() {});
   }
 
-  Future<void> _addCategory() async {
-    if (nameController.text.isEmpty || _currentUser == null) return;
-
-    setState(() {
-      categories.add(
-        Category(
-          name: nameController.text,
-          icon: 'category',   // default icon
-          color: '#607D8B',   // default abu-abu
-        ),
-      );
-      nameController.clear();
-    });
-
-    await _storage.saveCategories(_currentUser!, categories);
-
+  /// 🔹 Simpan kategori ke penyimpanan lokal
+  Future<void> _saveCategories() async {
+    await _storage.saveCategories(_username, _categories);
   }
 
-  Future<void> _deleteCategory(int index) async {
-    if (_currentUser == null) return;
+  /// 🔹 Tambah kategori baru
+  void _addCategory() {
+    String name = '';
+    String icon = '';
+    String color = '';
 
-    setState(() {
-      categories.removeAt(index);
-    });
-    await _storage.saveCategories(_currentUser!, categories);
-  }
-
-  Color _hexToColor(String hex) {
-    return Color(int.parse(hex.substring(1, 7), radix: 16) + 0xFF000000);
-  }
-  // ✅ Fungsi untuk edit kategori
-  Future<void> _editCategory(int index) async {
-    final TextEditingController editController =
-        TextEditingController(text: categories[index].name);
-
-    await showDialog(
+    showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Edit Kategori"),
-          content: TextField(
-            controller: editController,
-            decoration: const InputDecoration(
-              labelText: "Nama kategori baru",
-            ),
+          title: const Text('Tambah Kategori'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                decoration: const InputDecoration(labelText: 'Nama'),
+                onChanged: (val) => name = val,
+              ),
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: 'Ikon (misal: restaurant)',
+                ),
+                onChanged: (val) => icon = val,
+              ),
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: 'Warna (misal: #FF9800)',
+                ),
+                onChanged: (val) => color = val,
+              ),
+            ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Batal"),
+              child: const Text('Batal'),
             ),
             ElevatedButton(
               onPressed: () async {
-                if (editController.text.isNotEmpty) {
+                if (name.isNotEmpty && icon.isNotEmpty && color.isNotEmpty) {
                   setState(() {
-                   categories[index] = Category(
-                      name: editController.text,
-                      icon: categories[index].icon,
-                      color: categories[index].color,
+                    _categories.add(
+                      Category(name: name, icon: icon, color: color),
                     );
                   });
-                  await _storage.saveCategories(_currentUser!, categories);
-
+                  await _saveCategories();
+                  Navigator.pop(context);
                 }
-                Navigator.pop(context);
               },
-              child: const Text("Simpan"),
+              child: const Text('Simpan'),
             ),
           ],
         );
@@ -108,20 +94,91 @@ class _CategoryScreenState extends State<CategoryScreen> {
     );
   }
 
-  IconData _stringToIcon(String iconName) {
-    switch (iconName) {
-      case 'restaurant':
-        return Icons.restaurant;
-      case 'directions_car':
-        return Icons.directions_car;
-      case 'home':
-        return Icons.home;
-      case 'movie':
-        return Icons.movie;
-      case 'school':
-        return Icons.school;
-      default:
-        return Icons.category;
+  /// 🔹 Edit kategori
+  void _editCategory(int index) {
+    final category = _categories[index];
+    String name = category.name;
+    String icon = category.icon;
+    String color = category.color;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Edit Kategori'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: TextEditingController(text: name),
+                decoration: const InputDecoration(labelText: 'Nama'),
+                onChanged: (val) => name = val,
+              ),
+              TextField(
+                controller: TextEditingController(text: icon),
+                decoration: const InputDecoration(labelText: 'Ikon'),
+                onChanged: (val) => icon = val,
+              ),
+              TextField(
+                controller: TextEditingController(text: color),
+                decoration: const InputDecoration(labelText: 'Warna'),
+                onChanged: (val) => color = val,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                setState(() {
+                  _categories[index] = Category(
+                    name: name,
+                    icon: icon,
+                    color: color,
+                  );
+                });
+                await _saveCategories();
+                Navigator.pop(context);
+              },
+              child: const Text('Simpan'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// 🔹 Hapus kategori
+  void _deleteCategory(int index) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Hapus Kategori'),
+            content: Text(
+              'Yakin ingin menghapus kategori "${_categories[index].name}"?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Batal'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Hapus'),
+              ),
+            ],
+          ),
+    );
+
+    if (confirm == true) {
+      setState(() {
+        _categories.removeAt(index);
+      });
+      await _saveCategories();
     }
   }
 
@@ -130,73 +187,55 @@ class _CategoryScreenState extends State<CategoryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Kelola Kategori'),
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.blueAccent,
       ),
-      body: Column(
-        children: [
-          // Input tambah kategori
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Nama kategori baru',
-                      border: OutlineInputBorder(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addCategory,
+        child: const Icon(Icons.add),
+      ),
+      body:
+          _categories.isEmpty
+              ? const Center(child: Text('Belum ada kategori'))
+              : ListView.builder(
+                itemCount: _categories.length,
+                itemBuilder: (context, index) {
+                  final category = _categories[index];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
                     ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _addCategory,
-                  child: const Text('Tambah'),
-                ),
-              ],
-            ),
-          ),
-
-// Daftar kategori
-          Expanded(
-            child: ListView.builder(
-              itemCount: categories.length,
-              itemBuilder: (context, index) {
-                final category = categories[index];
-                return Card(
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: _hexToColor(category.color),
-                      child: Icon(
-                        _stringToIcon(category.icon),
-                        color: Colors.white,
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.circle,
+                        color: _hexToColor(category.color),
+                      ),
+                      title: Text(category.name),
+                      subtitle: Text('Ikon: ${category.icon}'),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.orange),
+                            onPressed: () => _editCategory(index),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deleteCategory(index),
+                          ),
+                        ],
                       ),
                     ),
-                    title: Text(category.name),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Tombol Edit
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => _editCategory(index),
-                        ),
-                        // Tombol Hapus
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _deleteCategory(index),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+                  );
+                },
+              ),
     );
+  }
+
+  /// 🔹 Konversi hex string ke Color
+  Color _hexToColor(String hex) {
+    hex = hex.replaceAll('#', '');
+    if (hex.length == 6) hex = 'FF$hex';
+    return Color(int.parse(hex, radix: 16));
   }
 }
