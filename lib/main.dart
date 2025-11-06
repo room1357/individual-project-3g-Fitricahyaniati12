@@ -5,6 +5,7 @@ import 'screens/home_screen.dart';
 import 'screens/advanced_expense_list_screen.dart';
 import 'models/looping_examples.dart';
 import 'screens/looping_screen.dart';
+import 'screens/currency_screen.dart'; // Tambah ini
 
 void main() {
   double total = LoopingExamples.calculateTotalFold(LoopingExamples.expenses);
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-    
+
       title: 'Expense Manager',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
@@ -36,6 +37,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomeScreen(),
         '/expense-list': (context) => const AdvancedExpenseListScreen(),
         '/looping': (context) => const LoopingScreen(),
+        '/currency': (context) => const CurrencyScreen(),
       },
     );
   }

@@ -7,6 +7,7 @@ import 'statistics_screen.dart';
 import 'category_screen.dart';
 import 'settings_screen.dart';
 import 'shared_expenses_screen.dart';
+import 'currency_screen.dart'; // ✅ Tambahkan import baru ini
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,7 +17,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String? username = '';
+  String username = 'User';
 
   @override
   void initState() {
@@ -27,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadUsername() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      username = prefs.getString('username') ?? 'User';
+      username = prefs.getString('loggedInUser') ?? 'User';
     });
   }
 
@@ -47,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
             // Header drawer
             UserAccountsDrawerHeader(
               decoration: const BoxDecoration(color: Colors.blue),
-              accountName: Text(username ?? 'User'),
+              accountName: Text(username),
               accountEmail: const Text('fitri@example.com'),
               currentAccountPicture: const CircleAvatar(
                 backgroundColor: Colors.white,
@@ -68,19 +69,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
-
-            /* ListTile(
-              leading: const Icon(Icons.group),
-              title: const Text('Pengeluaran Bersama'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SharedExpensesScreen(),
-                  ),
-                );
-              },
-            ),*/
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Pengaturan'),
@@ -99,7 +87,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
               title: const Text('Keluar'),
-              onTap: () {
+              onTap: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('loggedInUser');
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -156,20 +146,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                   ),
-                  /*_buildDashboardCard(
-                    context,
-                    'Profil',
-                    Icons.person,
-                    Colors.blue,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ProfileScreen(),
-                        ),
-                      );
-                    },
-                  ),*/
                   _buildDashboardCard(
                     context,
                     'Statistik',
@@ -212,20 +188,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                   ),
-                  /*_buildDashboardCard(
+                  // ✅ Tambahan fitur baru: Konversi Mata Uang
+                  _buildDashboardCard(
                     context,
-                    'Pengaturan',
-                    Icons.settings,
-                    Colors.purple,
+                    'Konversi Mata Uang',
+                    Icons.currency_exchange,
+                    Colors.orange,
                     () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const SettingsScreen(),
+                          builder: (context) => const CurrencyScreen(),
                         ),
                       );
                     },
-                  ),*/
+                  ),
                 ],
               ),
             ),
@@ -235,6 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // 🔹 Widget kartu dashboard
   Widget _buildDashboardCard(
     BuildContext context,
     String title,

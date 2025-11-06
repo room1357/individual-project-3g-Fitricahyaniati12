@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'register_screen.dart';
-import 'home_screen.dart';
+import 'home_screen.dart'; 
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,7 +30,14 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     if (inputUsername == savedUsername && inputPassword == savedPassword) {
-      Navigator.pushReplacementNamed(context, '/home');
+      // ✅ Simpan user yang sedang login
+      await prefs.setString('loggedInUser', inputUsername);
+
+      // ✅ Arahkan ke HomeScreen dengan pengganti route
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Username atau password salah")),
@@ -41,15 +48,10 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(
-        255,
-        255,
-        212,
-        227,
-      ), //  pink lembut
+      backgroundColor: const Color.fromARGB(255, 255, 212, 227),
       body: Stack(
         children: [
-          //  Lingkaran besar di atas
+          // Dekorasi lingkaran
           Positioned(
             top: -100,
             right: -100,
@@ -57,12 +59,11 @@ class _LoginScreenState extends State<LoginScreen> {
               width: 250,
               height: 250,
               decoration: const BoxDecoration(
-                color: Color(0xFF7EC8E3), // 💙 biru muda
+                color: Color(0xFF7EC8E3),
                 shape: BoxShape.circle,
               ),
             ),
           ),
-          //  Lingkaran kecil di bawah
           Positioned(
             bottom: -50,
             left: -50,
@@ -75,18 +76,15 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          // 🧩 Konten utama
+
+          // Konten utama
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.person,
-                    size: 100,
-                    color: Color(0xFF24527A), // biru tua lembut
-                  ),
+                  const Icon(Icons.person, size: 100, color: Color(0xFF24527A)),
                   const SizedBox(height: 20),
                   const Text(
                     "Masuk",
@@ -98,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 40),
 
-                  // Username Field
+                  // Username
                   TextField(
                     controller: usernameController,
                     decoration: InputDecoration(
@@ -114,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Password Field
+                  // Password
                   TextField(
                     controller: passwordController,
                     obscureText: true,
@@ -131,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 30),
 
-                  // Tombol Login
+                  // Tombol login
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
