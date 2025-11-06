@@ -117,7 +117,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.purple,
+                  backgroundColor: const Color.fromARGB(255, 216, 124, 233),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
                     vertical: 12,
