@@ -2,23 +2,16 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class CurrencyService {
-  Future<double?> getRate(String base, String target) async {
-    try {
-      final res = await http.get(
-        Uri.parse(
-          'https://api.exchangerate.host/latest?base=$base&symbols=$target',
-        ),
-      );
+  Future<double> getRate(String from, String to) async {
+    final url = Uri.parse(
+        'https://api.exchangerate-api.com/v4/latest/$from');
 
-      if (res.statusCode == 200) {
-        final data = json.decode(res.body);
-        return data['rates'][target] * 1.0;
-      } else {
-        return null;
-      }
-    } catch (e) {
-      print('Error: $e');
-      return null;
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['rates'][to] * 1.0;
+    } else {
+      throw Exception('Failed to fetch rate');
     }
   }
 }
