@@ -21,11 +21,84 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadUserProfile() async {
     final prefs = await SharedPreferences.getInstance();
+    final loggedInUser = prefs.getString('loggedInUser'); // 🔹 Username aktif
+
     setState(() {
-      fullName = prefs.getString('fullname') ?? 'Nama tidak tersedia';
-      email = prefs.getString('email') ?? 'Email tidak tersedia';
-      username = prefs.getString('username') ?? 'Username tidak tersedia';
+      username = loggedInUser ?? 'Username tidak tersedia';
+      fullName = prefs.getString('fullname_$username') ?? 'Nama tidak tersedia';
+      email = prefs.getString('email_$username') ?? 'Email tidak tersedia';
     });
+  }
+
+  Future<void> _editUsernameDialog() async {
+    final TextEditingController controller = TextEditingController(
+      text: username,
+    );
+
+    final newUsername = await showDialog<String>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Edit Username'),
+            content: TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                labelText: 'Masukkan username baru',
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Batal'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, controller.text.trim()),
+                child: const Text('Simpan'),
+              ),
+            ],
+          ),
+    );
+
+    if (newUsername != null &&
+        newUsername.isNotEmpty &&
+        newUsername != username) {
+      final prefs = await SharedPreferences.getInstance();
+
+      final oldUsername = username!;
+      final oldKey = 'expenses_$oldUsername';
+      final newKey = 'expenses_$newUsername';
+      final oldData = prefs.getString(oldKey);
+
+      // 🔹 Pindahkan data pengeluaran lama ke username baru
+      if (oldData != null) {
+        await prefs.setString(newKey, oldData);
+        await prefs.remove(oldKey);
+      }
+
+      // 🔹 Perbarui username di profil & data login
+      await prefs.setString('loggedInUser', newUsername);
+      await prefs.setString('username', newUsername);
+
+      // 🔹 Update profil jika pakai format fullname_email_username
+      final fullnameData = prefs.getString('fullname_$oldUsername');
+      final emailData = prefs.getString('email_$oldUsername');
+      if (fullnameData != null) {
+        await prefs.setString('fullname_$newUsername', fullnameData);
+        await prefs.remove('fullname_$oldUsername');
+      }
+      if (emailData != null) {
+        await prefs.setString('email_$newUsername', emailData);
+        await prefs.remove('email_$oldUsername');
+      }
+
+      setState(() {
+        username = newUsername;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Username berhasil diubah!')),
+      );
+    }
   }
 
   @override
@@ -43,17 +116,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Center(
                   child: Column(
                     children: [
-                      // Foto profil
                       const CircleAvatar(
                         radius: 60,
                         backgroundImage: AssetImage(
                           'assets/images/Profil.webp',
                         ),
                       ),
-
                       const SizedBox(height: 20),
-
-                      // Nama lengkap
                       Text(
                         fullName!,
                         style: const TextStyle(
@@ -64,8 +133,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(height: 10),
                       const Divider(thickness: 1),
 
-                      _buildInfoRow("Username", username!),
-                      _buildInfoRow("Email", email!),
+                      _buildInfoRow("Username", username ?? "-"),
+                      ElevatedButton(
+                        onPressed: _editUsernameDialog,
+                        child: const Text('Edit Username'),
+                      ),
+
+                      _buildInfoRow("Email", email ?? "-"),
                       const SizedBox(height: 20),
 
                       ElevatedButton(

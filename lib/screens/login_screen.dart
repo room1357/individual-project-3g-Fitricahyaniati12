@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import 'register_screen.dart';
-import 'home_screen.dart'; 
+import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,8 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _handleLogin() async {
     final prefs = await SharedPreferences.getInstance();
-    String? savedUsername = prefs.getString('username');
-    String? savedPassword = prefs.getString('password');
+    final String? usersData = prefs.getString('users');
 
     String inputUsername = usernameController.text.trim();
     String inputPassword = passwordController.text.trim();
@@ -29,11 +29,29 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    if (inputUsername == savedUsername && inputPassword == savedPassword) {
+    if (usersData == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Belum ada akun terdaftar")));
+      return;
+    }
+
+    // Decode semua user
+    List<Map<String, dynamic>> users = List<Map<String, dynamic>>.from(
+      json.decode(usersData),
+    );
+
+    // Cek apakah username & password cocok
+    final user = users.firstWhere(
+      (u) => u['username'] == inputUsername && u['password'] == inputPassword,
+      orElse: () => {},
+    );
+
+    if (user.isNotEmpty) {
       // ✅ Simpan user yang sedang login
       await prefs.setString('loggedInUser', inputUsername);
 
-      // ✅ Arahkan ke HomeScreen dengan pengganti route
+      // ✅ Arahkan ke HomeScreen
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),
