@@ -1,9 +1,8 @@
-// import 'dart:io';
 import 'package:flutter/material.dart';
-// import 'package:share_plus/share_plus.dart';
-import '../services/export_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/expense.dart';
-import '../services/expense_manager.dart';
+import '../services/export_service.dart';
+import '../services/shared_expense_service.dart';
 import 'add_expense_screen.dart';
 import 'edit_expense_screen.dart';
 
@@ -16,50 +15,83 @@ class AdvancedExpenseListScreen extends StatefulWidget {
 }
 
 class _AdvancedExpenseListScreenState extends State<AdvancedExpenseListScreen> {
-  List<Expense> expenses = ExpenseManager.expenses;
+  List<Expense> expenses = [];
   List<Expense> filteredExpenses = [];
   String selectedCategory = 'Semua';
   final TextEditingController searchController = TextEditingController();
+  String? loggedInUser;
 
   @override
   void initState() {
     super.initState();
-    filteredExpenses = expenses;
+    _loadUserAndExpenses();
   }
 
-  // ➕ tambah expense
-  void _addExpense(Expense expense) {
-    setState(() {
-      expenses.add(expense);
-      _filterExpenses();
-    });
-  }
+  /// 🔹 Ambil user login & data pengeluaran user
+  Future<void> _loadUserAndExpenses() async {
+    final prefs = await SharedPreferences.getInstance();
+    final user = prefs.getString('loggedInUser');
 
-  // ✏️ update expense
-  void _updateExpense(Expense updatedExpense) {
-    setState(() {
-      final index = expenses.indexWhere((e) => e.id == updatedExpense.id);
-      if (index != -1) {
-        expenses[index] = updatedExpense;
+    if (user == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('User belum login.')));
       }
-      _filterExpenses();
-    });
+      return;
+    }
+
+    final loadedData = await SharedExpenseService.loadExpenses(user);
+    if (mounted) {
+      setState(() {
+        loggedInUser = user;
+        expenses = loadedData.map((e) => Expense.fromJson(e)).toList();
+        filteredExpenses = expenses;
+      });
+    }
   }
 
-  // ❌ hapus expense
-  void _deleteExpense(Expense expense) {
+  /// ➕ Tambah pengeluaran
+  Future<void> _addExpense(Expense expense) async {
+    if (loggedInUser == null) return;
+    await SharedExpenseService.addExpense(loggedInUser!, expense.toJson());
+    await _loadUserAndExpenses();
+  }
+
+  /// ✏️ Edit pengeluaran
+  Future<void> _updateExpense(Expense updatedExpense) async {
+    if (loggedInUser == null) return;
+    final index = expenses.indexWhere((e) => e.id == updatedExpense.id);
+    if (index != -1) {
+      expenses[index] = updatedExpense;
+      await SharedExpenseService.saveExpenses(
+        loggedInUser!,
+        expenses.map((e) => e.toJson()).toList(),
+      );
+      setState(() {
+        _filterExpenses();
+      });
+    }
+  }
+
+  /// ❌ Hapus pengeluaran
+  Future<void> _deleteExpense(Expense expense) async {
+    if (loggedInUser == null) return;
+    expenses.removeWhere((e) => e.id == expense.id);
+    await SharedExpenseService.saveExpenses(
+      loggedInUser!,
+      expenses.map((e) => e.toJson()).toList(),
+    );
     setState(() {
-      expenses.removeWhere((e) => e.id == expense.id);
       _filterExpenses();
     });
   }
 
-  // 📄 EXPORT PDF (simpan file + tampilkan path)
+  /// 📄 Export PDF
   Future<void> _exportToPDF() async {
     try {
       final exportService = ExportService();
       final file = await exportService.exportToPDF(filteredExpenses);
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -76,12 +108,11 @@ class _AdvancedExpenseListScreenState extends State<AdvancedExpenseListScreen> {
     }
   }
 
-  // 📊 EXPORT CSV (simpan file + tampilkan path)
+  /// 📊 Export CSV
   Future<void> _exportToCSV() async {
     try {
       final exportService = ExportService();
       final file = await exportService.exportToCSV(filteredExpenses);
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -96,6 +127,24 @@ class _AdvancedExpenseListScreenState extends State<AdvancedExpenseListScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text("❌ Gagal export CSV: $e")));
     }
+  }
+
+  // 🔍 Filter pencarian & kategori
+  void _filterExpenses() {
+    setState(() {
+      final query = searchController.text.toLowerCase();
+      filteredExpenses =
+          expenses.where((expense) {
+            final matchesSearch =
+                query.isEmpty ||
+                expense.title.toLowerCase().contains(query) ||
+                expense.description.toLowerCase().contains(query);
+            final matchesCategory =
+                selectedCategory == 'Semua' ||
+                expense.category == selectedCategory;
+            return matchesSearch && matchesCategory;
+          }).toList();
+    });
   }
 
   @override
@@ -189,7 +238,7 @@ class _AdvancedExpenseListScreenState extends State<AdvancedExpenseListScreen> {
             ),
           ),
 
-          // 📈 Statistik
+          // 📈 Statistik ringkas
           Container(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -286,27 +335,6 @@ class _AdvancedExpenseListScreenState extends State<AdvancedExpenseListScreen> {
         child: const Icon(Icons.add),
       ),
     );
-  }
-
-  // 🔍 Filter pencarian & kategori
-  void _filterExpenses() {
-    setState(() {
-      filteredExpenses =
-          expenses.where((expense) {
-            final query = searchController.text.toLowerCase();
-
-            final matchesSearch =
-                query.isEmpty ||
-                expense.title.toLowerCase().contains(query) ||
-                expense.description.toLowerCase().contains(query);
-
-            final matchesCategory =
-                selectedCategory == 'Semua' ||
-                expense.category == selectedCategory;
-
-            return matchesSearch && matchesCategory;
-          }).toList();
-    });
   }
 
   // 📊 Widget statistik kecil

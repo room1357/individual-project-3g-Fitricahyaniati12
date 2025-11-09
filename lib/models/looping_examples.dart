@@ -48,9 +48,9 @@ class LoopingExamples {
 
   static double calculateTotalForEach(List<Expense> expenses) {
     double total = 0;
-    expenses.forEach((expense) {
+    for (var expense in expenses) {
       total += expense.amount;
-    });
+    }
     return total;
   }
 

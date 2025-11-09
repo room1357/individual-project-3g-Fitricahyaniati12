@@ -93,7 +93,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
                 // Dropdown Kategori
                 DropdownButtonFormField<String>(
-                  value: _selectedCategory,
+                  initialValue: _selectedCategory,
                   decoration: const InputDecoration(labelText: "Kategori"),
                   items: categories
                       .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))

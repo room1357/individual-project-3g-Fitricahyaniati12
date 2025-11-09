@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+import '../services/shared_expense_service.dart';
 
 class SharedExpensesScreen extends StatefulWidget {
   const SharedExpensesScreen({super.key});
@@ -15,29 +15,39 @@ class _SharedExpensesScreenState extends State<SharedExpensesScreen> {
   final TextEditingController peopleController = TextEditingController();
 
   List<Map<String, dynamic>> expenses = [];
+  String? loggedInUser;
 
   @override
   void initState() {
     super.initState();
-    _loadExpenses();
+    _loadUserAndExpenses();
   }
 
-  Future<void> _loadExpenses() async {
+  /// 🔹 Ambil user login + data pengeluaran dari SharedPreferences
+  Future<void> _loadUserAndExpenses() async {
     final prefs = await SharedPreferences.getInstance();
-    final String? data = prefs.getString('shared_expenses');
-    if (data != null) {
+    final user = prefs.getString('loggedInUser');
+
+    if (user == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('User belum login.')));
+      }
+      return;
+    }
+
+    final loadedExpenses = await SharedExpenseService.loadExpenses(user);
+    if (mounted) {
       setState(() {
-        expenses = List<Map<String, dynamic>>.from(json.decode(data));
+        loggedInUser = user;
+        expenses = loadedExpenses;
       });
     }
   }
 
-  Future<void> _saveExpenses() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('shared_expenses', json.encode(expenses));
-  }
-
-  void _addExpense() {
+  /// 🔹 Tambah data pengeluaran baru
+  Future<void> _addExpense() async {
     final title = titleController.text.trim();
     final amountText = amountController.text.trim();
     final peopleText = peopleController.text.trim();
@@ -66,17 +76,47 @@ class _SharedExpensesScreenState extends State<SharedExpensesScreen> {
       "total": totalAmount,
       "people": peopleCount,
       "share": perPerson.toStringAsFixed(2),
+      "createdAt": DateTime.now().toIso8601String(),
     };
 
-    setState(() {
-      expenses.add(newExpense);
-    });
-
-    _saveExpenses();
+    if (loggedInUser != null) {
+      await SharedExpenseService.addExpense(loggedInUser!, newExpense);
+      final updatedExpenses = await SharedExpenseService.loadExpenses(
+        loggedInUser!,
+      );
+      if (mounted) {
+        setState(() {
+          expenses = updatedExpenses;
+        });
+      }
+    }
 
     titleController.clear();
     amountController.clear();
     peopleController.clear();
+  }
+
+  /// 🔹 Hapus data pengeluaran berdasarkan index
+  Future<void> _deleteExpense(int index) async {
+    if (loggedInUser != null) {
+      await SharedExpenseService.deleteExpense(loggedInUser!, index);
+      final updatedExpenses = await SharedExpenseService.loadExpenses(
+        loggedInUser!,
+      );
+      if (mounted) {
+        setState(() {
+          expenses = updatedExpenses;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    amountController.dispose();
+    peopleController.dispose();
+    super.dispose();
   }
 
   @override
@@ -124,31 +164,33 @@ class _SharedExpensesScreenState extends State<SharedExpensesScreen> {
             const SizedBox(height: 20),
             const Divider(),
             Expanded(
-              child: expenses.isEmpty
-                  ? const Center(child: Text("Belum ada pengeluaran."))
-                  : ListView.builder(
-                      itemCount: expenses.length,
-                      itemBuilder: (context, index) {
-                        final expense = expenses[index];
-                        return Card(
-                          child: ListTile(
-                            title: Text(expense["title"]),
-                            subtitle: Text(
-                              "Total: Rp${expense["total"]}  \nOrang: ${expense["people"]}\nPer Orang: Rp${expense["share"]}",
+              child:
+                  expenses.isEmpty
+                      ? const Center(child: Text("Belum ada pengeluaran."))
+                      : ListView.builder(
+                        itemCount: expenses.length,
+                        itemBuilder: (context, index) {
+                          final expense = expenses[index];
+                          return Card(
+                            child: ListTile(
+                              title: Text(expense["title"]),
+                              subtitle: Text(
+                                "Total: Rp${expense["total"]}\n"
+                                "Orang: ${expense["people"]}\n"
+                                "Per Orang: Rp${expense["share"]}\n"
+                                "Tanggal: ${DateTime.tryParse(expense["createdAt"] ?? '')?.toLocal().toString().split(' ')[0] ?? '-'}",
+                              ),
+                              trailing: IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () => _deleteExpense(index),
+                              ),
                             ),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () {
-                                setState(() {
-                                  expenses.removeAt(index);
-                                });
-                                _saveExpenses();
-                              },
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                          );
+                        },
+                      ),
             ),
           ],
         ),

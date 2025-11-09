@@ -81,7 +81,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   // 🔹 Dropdown untuk pilih ikon
                   DropdownButtonFormField<String>(
                     decoration: const InputDecoration(labelText: 'Pilih Ikon'),
-                    value: selectedIcon,
+                    initialValue: selectedIcon,
                     items:
                         _availableIcons.keys.map((key) {
                           return DropdownMenuItem<String>(
@@ -203,7 +203,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   // 🔹 Dropdown ikon
                   DropdownButtonFormField<String>(
                     decoration: const InputDecoration(labelText: 'Pilih Ikon'),
-                    value: selectedIcon,
+                    initialValue: selectedIcon,
                     items:
                         _availableIcons.keys.map((key) {
                           return DropdownMenuItem<String>(
