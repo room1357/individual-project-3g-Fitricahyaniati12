@@ -28,7 +28,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  // 🧩 Fungsi untuk handle register multi-user
   void handleRegister() async {
     String fullName = fullNameController.text.trim();
     String email = emailController.text.trim();
@@ -56,7 +55,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     final prefs = await SharedPreferences.getInstance();
 
-    // ✅ Aman dari error tipe data salah
     final existingData = prefs.get('users');
     String? existingUsersString;
 
@@ -64,7 +62,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       existingUsersString = existingData;
     } else {
       existingUsersString = null;
-      await prefs.remove('users'); // hapus data lama salah tipe
+      await prefs.remove('users');
     }
 
     List<Map<String, dynamic>> users = [];
@@ -76,7 +74,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
     }
 
-    // ✅ Cek username/email duplikat
     bool usernameExists = users.any((u) => u['username'] == username);
     bool emailExists = users.any((u) => u['email'] == email);
 
@@ -87,7 +84,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    // Tambah user baru
+    // Simpan user ke list
     users.add({
       "fullname": fullName,
       "email": email,
@@ -95,17 +92,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
       "password": password,
     });
 
-    // Simpan ke prefs
+    // Simpan list user
     await prefs.setString('users', json.encode(users));
 
-    // Notifikasi sukses
+    // 🔥 PENTING — SIMPAN FULLNAME & EMAIL SESUAI USERNAME
+    await prefs.setString('fullname_$username', fullName);
+    await prefs.setString('email_$username', email);
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Registrasi berhasil! Silakan login.")),
     );
 
     await Future.delayed(const Duration(milliseconds: 500));
 
-    // Navigasi ke login
     if (context.mounted) {
       Navigator.pushReplacement(
         context,
@@ -114,7 +113,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  // 🎨 Widget Reusable TextField
   Widget buildTextField({
     required TextEditingController controller,
     required String label,
@@ -143,7 +141,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       backgroundColor: const Color.fromARGB(255, 255, 214, 228),
       body: Stack(
         children: [
-          // 💠 Lingkaran besar atas
           Positioned(
             top: -100,
             right: -100,
@@ -156,7 +153,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
           ),
-          // 💠 Lingkaran kecil bawah
           Positioned(
             bottom: -50,
             left: -50,
@@ -169,7 +165,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
           ),
-          // 🩵 Konten utama
           SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 60),
             child: Column(
@@ -243,31 +238,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("Sudah punya akun? "),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const LoginScreen(),
-                          ),
-                          (Route<dynamic> route) => false,
-                        );
-                      },
-                      child: const Text(
-                        'Masuk',
-                        style: TextStyle(
-                          color: Color(0xFF24527A),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),

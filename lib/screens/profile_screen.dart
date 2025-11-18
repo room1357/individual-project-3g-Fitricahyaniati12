@@ -21,84 +21,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadUserProfile() async {
     final prefs = await SharedPreferences.getInstance();
-    final loggedInUser = prefs.getString('loggedInUser'); // 🔹 Username aktif
+    final loggedInUser = prefs.getString('loggedInUser');
+
+    if (loggedInUser == null) {
+      setState(() {
+        username = 'Tidak ada username';
+        fullName = 'Nama tidak tersedia';
+        email = 'Email tidak tersedia';
+      });
+      return;
+    }
 
     setState(() {
-      username = loggedInUser ?? 'Username tidak tersedia';
-      fullName = prefs.getString('fullname_$username') ?? 'Nama tidak tersedia';
-      email = prefs.getString('email_$username') ?? 'Email tidak tersedia';
+      username = loggedInUser;
+      fullName = prefs.getString('fullname_$loggedInUser') ?? 'Nama tidak tersedia';
+      email = prefs.getString('email_$loggedInUser') ?? 'Email tidak tersedia';
     });
-  }
-
-  Future<void> _editUsernameDialog() async {
-    final TextEditingController controller = TextEditingController(
-      text: username,
-    );
-
-    final newUsername = await showDialog<String>(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Edit Username'),
-            content: TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                labelText: 'Masukkan username baru',
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Batal'),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, controller.text.trim()),
-                child: const Text('Simpan'),
-              ),
-            ],
-          ),
-    );
-
-    if (newUsername != null &&
-        newUsername.isNotEmpty &&
-        newUsername != username) {
-      final prefs = await SharedPreferences.getInstance();
-
-      final oldUsername = username!;
-      final oldKey = 'expenses_$oldUsername';
-      final newKey = 'expenses_$newUsername';
-      final oldData = prefs.getString(oldKey);
-
-      // 🔹 Pindahkan data pengeluaran lama ke username baru
-      if (oldData != null) {
-        await prefs.setString(newKey, oldData);
-        await prefs.remove(oldKey);
-      }
-
-      // 🔹 Perbarui username di profil & data login
-      await prefs.setString('loggedInUser', newUsername);
-      await prefs.setString('username', newUsername);
-
-      // 🔹 Update profil jika pakai format fullname_email_username
-      final fullnameData = prefs.getString('fullname_$oldUsername');
-      final emailData = prefs.getString('email_$oldUsername');
-      if (fullnameData != null) {
-        await prefs.setString('fullname_$newUsername', fullnameData);
-        await prefs.remove('fullname_$oldUsername');
-      }
-      if (emailData != null) {
-        await prefs.setString('email_$newUsername', emailData);
-        await prefs.remove('email_$oldUsername');
-      }
-
-      setState(() {
-        username = newUsername;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Username berhasil diubah!')),
-      );
-    }
   }
 
   @override
@@ -108,48 +46,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('Profil Saya'),
         backgroundColor: Colors.blue,
       ),
-      body:
-          fullName == null
-              ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Center(
-                  child: Column(
-                    children: [
-                      const CircleAvatar(
-                        radius: 60,
-                        backgroundImage: AssetImage(
-                          'assets/images/Profil.webp',
-                        ),
+      body: fullName == null
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Center(
+                child: Column(
+                  children: [
+                    const CircleAvatar(
+                      radius: 60,
+                      backgroundImage: AssetImage('assets/images/Profil.webp'),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      fullName!,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(height: 20),
-                      Text(
-                        fullName!,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      const Divider(thickness: 1),
-
-                      _buildInfoRow("Username", username ?? "-"),
-                      ElevatedButton(
-                        onPressed: _editUsernameDialog,
-                        child: const Text('Edit Username'),
-                      ),
-
-                      _buildInfoRow("Email", email ?? "-"),
-                      const SizedBox(height: 20),
-
-                      ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Kembali'),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const Divider(thickness: 1),
+                    _buildInfoRow("Username", username ?? "-"),
+                    _buildInfoRow("Email", email ?? "-"),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Kembali'),
+                    ),
+                  ],
                 ),
               ),
+            ),
     );
   }
 
